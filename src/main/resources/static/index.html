@@ -209,6 +209,15 @@
             } else if (name.includes("keyboard")) {
                 plastic += 0.6;
                 co2 += 5;
+            } 
+            // 👇 CHECK FOR THESE LINES 👇
+            else if (name.includes("monitor") || name.includes("screen") || name.includes("display")) {
+                plastic += 2.5; 
+                co2 += 35;
+                gold += 0.01; 
+            } else if (name.includes("printer") || name.includes("inkjet") || name.includes("laser")) {
+                plastic += 3.2; 
+                co2 += 25;
             }
         });
 
