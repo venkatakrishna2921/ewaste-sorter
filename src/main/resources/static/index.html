@@ -163,13 +163,25 @@
         window.requestAnimationFrame(loop);
     }
 
-    async function loop() {
-        if (isWebcamOn) {
-            webcam.update();
+    // Add this new variable right above the loop function
+let lastPredictTime = 0;
+
+async function loop() {
+    if (isWebcamOn) {
+        // 1. Always update the webcam (keeps the video feed looking smooth)
+        webcam.update();
+
+        // 2. Add a Speed Limit: Only run the heavy AI math every 200 milliseconds
+        const currentTime = Date.now();
+        if (currentTime - lastPredictTime > 200) {
             await predict(webcam.canvas);
-            window.requestAnimationFrame(loop);
+            lastPredictTime = currentTime; // Reset the timer
         }
+
+        // 3. Keep looping
+        window.requestAnimationFrame(loop);
     }
+}
 
     async function handleFile(event) {
         const file = event.target.files[0];
