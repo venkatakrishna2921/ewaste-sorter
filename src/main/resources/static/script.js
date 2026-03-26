@@ -236,6 +236,28 @@ async function loadHistory() {
         document.getElementById("bar-gold").style.width = goldPct + "%";
         document.getElementById("bar-co2").style.width = co2Pct + "%";
         document.getElementById("bar-plastic").style.width = plasticPct + "%";
+        // --- NEW: GAMIFICATION LEVEL LOGIC ---
+        const totalScans = allHistoryData.length;
+        let level = 1;
+        let title = "Earth Novice 🌱";
+        let nextGoal = 5;
+
+        // Determine level based on total items scanned
+        if (totalScans >= 50) { level = 5; title = "Global Savior 🌍"; nextGoal = "Max"; }
+        else if (totalScans >= 25) { level = 4; title = "Recycling Master 🏆"; nextGoal = 50; }
+        else if (totalScans >= 10) { level = 3; title = "Eco Warrior ⚔️"; nextGoal = 25; }
+        else if (totalScans >= 5) { level = 2; title = "Sustainability Hero 🦸"; nextGoal = 10; }
+
+        // Update the UI Badge
+        document.getElementById("user-level-badge").innerHTML = `🌟 Level ${level}: ${title}`;
+        
+        // Update the subtitle text
+        if (nextGoal !== "Max") {
+            let scansLeft = nextGoal - totalScans;
+            document.getElementById("level-subtitle").innerText = `Scan ${scansLeft} more item${scansLeft > 1 ? 's' : ''} to reach Level ${level + 1}!`;
+        } else {
+            document.getElementById("level-subtitle").innerText = `🎉 You have reached the maximum level!`;
+        }
     }
 
     // 5. Draw the pie chart and tables
