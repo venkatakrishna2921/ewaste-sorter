@@ -358,15 +358,22 @@
             };
 
             // 3. Fallback logic just in case the AI finds a new item
-            let displayData = richData[currentPrediction];
-            if (!displayData) {
-                // Generic fallback for unknown items
-                displayData = {
-                    isHazardous: false,
-                    dangerDetails: "General electronic components and plastics.",
-                    components: ["Plastic Housing", "Copper Wiring", "Circuit Boards"],
-                    steps: "1️⃣ Unplug the device entirely.\n2️⃣ Remove any external or loose batteries.\n3️⃣ Do not throw in the regular trash.\n4️⃣ Drop off at a local e-waste recycling center."
-                };
+            // 3. Smart Matching Logic (Ignores exact spelling/capitalization)
+            let displayData = null;
+            const searchName = currentPrediction.toLowerCase();
+
+            if (searchName.includes("phone") || searchName.includes("mobile")) {
+                displayData = richData["Mobile Phone"];
+            } else if (searchName.includes("laptop") || searchName.includes("pc")) {
+                displayData = richData["Laptop"];
+            } else if (searchName.includes("monitor") || searchName.includes("screen") || searchName.includes("display")) {
+                displayData = richData["Monitor"];
+            } else if (searchName.includes("printer") || searchName.includes("ink")) {
+                displayData = richData["Printer"];
+            } else if (searchName.includes("keyboard")) {
+                displayData = richData["Keyboard"];
+            } else if (searchName.includes("mouse")) {
+                displayData = richData["Computer Mouse"];
             }
 
             // 4. Update the UI with the expanded data
