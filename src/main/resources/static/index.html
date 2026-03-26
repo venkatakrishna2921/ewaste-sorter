@@ -287,42 +287,73 @@
             await fetch(`/api/waste?item=${currentPrediction}&_=${Date.now()}`);
             
             // 2. Our Expanded, Presentation-Ready E-Waste Dictionary
+            // 2. Our Expanded, Presentation-Ready E-Waste Dictionary
             const richData = {
                 "Mobile Phone": {
                     isHazardous: true,
-                    dangerDetails: "Contains highly reactive Lithium-Ion batteries, lead, and rare earth metals.",
-                    components: ["Lithium-Ion Battery", "Gold/Silver Traces", "Cobalt", "Glass Screen"],
-                    steps: "1️⃣ Back up all data to the cloud or a hard drive.\n2️⃣ Perform a complete Factory Reset to wipe personal info.\n3️⃣ Remove the SIM card and SD memory cards.\n4️⃣ Do NOT attempt to remove the battery (fire hazard if punctured).\n5️⃣ Drop off at a retail drop-box (e.g., Best Buy, Apple) or certified e-waste bin."
+                    dangerDetails: "Contains highly reactive Lithium-Ion batteries, lead solder, and toxic rare earth metals.",
+                    components: [
+                        "Battery: Lithium, Cobalt, Graphite", 
+                        "Screen: Indium Tin Oxide, Aluminosilicate Glass", 
+                        "Circuit Board: Gold, Silver, Palladium, Copper", 
+                        "Casing: Anodized Aluminum, Polycarbonate Plastic"
+                    ],
+                    steps: "1️⃣ Data Security: Perform a complete Factory Reset to wipe personal information.\n2️⃣ Disconnect: Remove the SIM card and any MicroSD memory cards.\n3️⃣ Safety Warning: DO NOT attempt to pry out the battery. Puncturing it can cause a severe chemical fire.\n4️⃣ Storage: Keep the device dry and away from extreme heat to prevent battery swelling.\n5️⃣ Disposal: Hand directly to a certified e-waste recycler or a retail drop-box (e.g., Best Buy, Apple Store)."
                 },
                 "Laptop": {
                     isHazardous: true,
-                    dangerDetails: "Contains heavy metals, lithium batteries, and toxic flame retardants.",
-                    components: ["Motherboard (Lead Solder)", "Lithium Battery", "Hard Drive", "LCD Screen"],
-                    steps: "1️⃣ Back up important files and completely wipe the hard drive.\n2️⃣ Remove any connected USB dongles or wireless mice.\n3️⃣ Keep the battery inside (handle with extreme care if swollen).\n4️⃣ Pack the laptop along with its specific charging brick and cables.\n5️⃣ Take directly to a municipal hazardous waste or certified e-waste facility."
+                    dangerDetails: "Contains heavy metals, swollen lithium battery risks, and toxic brominated flame retardants.",
+                    components: [
+                        "Motherboard: Lead Solder, Beryllium, Copper", 
+                        "Battery Pack: Lithium-Ion Polymer", 
+                        "Hard Drive: Aluminum, Neodymium Magnets", 
+                        "Casing: Magnesium Alloy, ABS Plastic"
+                    ],
+                    steps: "1️⃣ Data Destruction: Back up files and completely wipe the hard drive (or physically remove it to destroy it).\n2️⃣ Prep: Unplug the laptop and bundle the specific charging brick and cables with it.\n3️⃣ Battery Protocol: If the battery is swollen, place the laptop in a fire-proof container. Do NOT charge it.\n4️⃣ Transport: Carry the laptop flat to avoid cracking the LCD screen, which contains toxic liquids.\n5️⃣ Disposal: Take directly to a municipal hazardous waste or certified e-waste facility."
                 },
                 "Monitor": {
                     isHazardous: true,
-                    dangerDetails: "Older CRT monitors contain lead; modern LCD/LEDs contain mercury vapors.",
-                    components: ["Glass/Liquid Crystals", "Mercury Backlighting", "Hard Plastic Shell", "Circuit Boards"],
-                    steps: "1️⃣ Unplug the monitor and neatly wrap the power cord.\n2️⃣ Do NOT dismantle or break the glass screen (releases toxic vapor).\n3️⃣ Handle with extreme care during transport to prevent cracking.\n4️⃣ Deliver directly to a certified e-waste drop-off center."
+                    dangerDetails: "Older monitors contain Lead (CRT); modern displays contain Mercury vapors (LCD).",
+                    components: [
+                        "Display Panel: Liquid Crystals, Indium", 
+                        "Backlighting: Mercury Vapor Tubes (LCD) or LEDs", 
+                        "Circuitry: Lead, Cadmium", 
+                        "Housing: Brominated Flame Retardant (BFR) Plastics"
+                    ],
+                    steps: "1️⃣ Unplug and Wait: Unplug the monitor and let it sit for an hour (internal capacitors can hold a dangerous electric charge).\n2️⃣ Cable Management: Wrap the power and display cords neatly and tape them to the base.\n3️⃣ Critical Safety: DO NOT drop or crack the screen. Breaking an LCD screen releases toxic mercury vapor into the air.\n4️⃣ Transport: Carry the monitor by the base or frame, never by the glass.\n5️⃣ Disposal: Deliver to a specialized monitor/TV recycling facility that handles chemical extraction."
                 },
                 "Printer": {
                     isHazardous: true,
-                    dangerDetails: "Contains chemical ink, Toner VOCs, and fire-retardant plastics.",
-                    components: ["Toner/Ink Cartridges", "Copper Motors", "Steel Shafts", "Plastic Housing"],
-                    steps: "1️⃣ Remove all ink or toner cartridges and place them in a sealed plastic bag.\n2️⃣ Recycle cartridges separately at an office supply store (e.g., Staples).\n3️⃣ Tape the printer doors shut so it doesn't break open during transit.\n4️⃣ Take the main printer body to a municipal e-waste facility."
+                    dangerDetails: "Contains highly toxic chemical inks, volatile organic compounds (VOCs) in toner, and electronic waste.",
+                    components: [
+                        "Cartridges: Carbon Black Toner, Liquid Chemical Inks", 
+                        "Mechanics: Steel Shafts, Copper Stepper Motors", 
+                        "Circuit Boards: Gold Plating, Lead Solder", 
+                        "Outer Shell: High-Impact Polystyrene (HIPS)"
+                    ],
+                    steps: "1️⃣ Remove Chemicals: Open the printer and remove all ink or toner cartridges. Place them in a sealed Ziploc bag.\n2️⃣ Cartridge Recycling: Recycle the ink/toner cartridges separately at an office supply store (e.g., Staples, Office Depot).\n3️⃣ Secure the Unit: Tape the printer doors and paper trays shut so it doesn't break open during transit.\n4️⃣ Disposal: Take the main plastic and metal chassis to a local municipal e-waste drop-off."
                 },
                 "Keyboard": {
                     isHazardous: false,
-                    dangerDetails: "Generally safe to handle, but creates toxic microplastics if put in a landfill.",
-                    components: ["ABS Plastic Keys", "Silicone Membrane", "Small Circuit Board", "Copper Wire"],
-                    steps: "1️⃣ Unplug the keyboard and wrap the cable neatly.\n2️⃣ If it is wireless, remove the AA/AAA alkaline batteries and recycle them separately.\n3️⃣ Shake out any crumbs or debris.\n4️⃣ Drop off at a standard electronics recycling bin."
+                    dangerDetails: "Safe to handle, but creates toxic microplastics and leaches heavy metals if sent to a landfill.",
+                    components: [
+                        "Keycaps: ABS or PBT Plastic", 
+                        "Membrane: Silicone / Rubber Domes", 
+                        "Controller Board: Copper, Trace Precious Metals", 
+                        "Cables: PVC-Coated Copper Wire"
+                    ],
+                    steps: "1️⃣ Prep: Unplug the keyboard and wrap the USB cable neatly.\n2️⃣ Battery Check: If it is a wireless keyboard, open the back and remove the AA/AAA alkaline batteries.\n3️⃣ Battery Disposal: Tape the ends of the batteries and drop them in a designated battery recycling bin at a hardware store.\n4️⃣ Disposal: Shake out any loose debris, then drop the keyboard off at any standard electronics collection bin."
                 },
                 "Computer Mouse": {
                     isHazardous: false,
-                    dangerDetails: "Safe to handle, but contains non-biodegradable plastics and circuitry.",
-                    components: ["Hard Plastic", "Optical Sensor / Laser", "Scroll Wheel", "Circuit Board"],
-                    steps: "1️⃣ If wireless, remove the battery and the USB receiver dongle.\n2️⃣ Wrap the cord around the mouse to prevent tangling.\n3️⃣ Drop off alongside other safe peripherals at a local e-waste collection point."
+                    dangerDetails: "Safe to handle, but contains non-biodegradable plastics and micro-circuitry.",
+                    components: [
+                        "Shell: ABS Plastic", 
+                        "Optical Sensor: LED / Diode, Glass Lens", 
+                        "PCB: Copper, Lead-Free Solder", 
+                        "Switches: Metal Springs"
+                    ],
+                    steps: "1️⃣ Prep: If wireless, remove the battery and the USB receiver dongle from the bottom.\n2️⃣ Corded: If corded, wrap the cord around the mouse to prevent tangling with other e-waste.\n3️⃣ Battery Disposal: Dispose of alkaline batteries in specialized battery bins, not the trash.\n4️⃣ Disposal: Drop the mouse in standard e-waste bins alongside keyboards and non-hazardous peripherals."
                 }
             };
 
