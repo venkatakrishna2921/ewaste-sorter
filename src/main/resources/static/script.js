@@ -2,6 +2,7 @@ const URL = "./model/"; // Looks inside your static/model folder
 let model, webcam, maxPredictions;
 let isWebcamOn = false;
 let currentBestGuess = ""; // Store what the AI thinks it sees
+let lastPredictTime = 0; // NEW: Timer variable for the speed limit
 
 // 1. Navigation
 function showTab(tabName) {
@@ -21,7 +22,7 @@ async function init() {
     }
 }
 
-// 3. Start Webcam
+// 3. Start Webcam & Speed Limit Loop
 async function startWebcam() {
     document.getElementById("uploaded-image").style.display = "none";
     document.getElementById("result-box").style.display = "none";
@@ -40,10 +41,18 @@ async function startWebcam() {
     window.requestAnimationFrame(loop);
 }
 
+// NEW: Fixed loop to stop the website from lagging
 async function loop() {
     if (isWebcamOn) {
-        webcam.update();
-        await predict(webcam.canvas);
+        webcam.update(); // Keep the video smooth
+
+        // SPEED LIMIT: Only run the heavy AI math every 200 milliseconds
+        const currentTime = Date.now();
+        if (currentTime - lastPredictTime > 200) {
+            await predict(webcam.canvas);
+            lastPredictTime = currentTime; 
+        }
+
         window.requestAnimationFrame(loop);
     }
 }
@@ -109,37 +118,12 @@ async function processItem(itemName) {
     saveToDatabase(itemName);
 }
 
-// 8. Fetch Details for UI (UPDATED WITH LOCAL DATA)
+// 8. Fetch Details for UI
 async function fetchDetails(itemName) {
-    // --- LOCAL DATABASE FOR NEW ITEMS ---
-    const localEwasteDatabase = {
-        "Monitor": {
-            name: "Monitor (LCD/LED/CRT)",
-            isHazardous: true,
-            dangerDetails: "Contains Mercury, Lead, and Arsenic.",
-            recyclingSteps: "Do NOT dismantle. Breaking the screen releases toxic vapor. Secure the power cable and take it directly to a certified e-waste drop-off center.",
-            components: ["Hard Plastic (ABS)", "Glass / Liquid Crystals", "Mercury/LED Backlighting", "Circuit Boards (Lead Solder)"]
-        },
-        "Printer": {
-            name: "Printer (Inkjet/Laser)",
-            isHazardous: true,
-            dangerDetails: "Contains Toner VOCs and chemical ink.",
-            recyclingSteps: "Remove all ink or toner cartridges and seal them in a plastic bag. Do not throw cartridges in the trash. Recycle the empty hardware shell at a designated drop-off center.",
-            components: ["Outer Casing (Fire-retardant plastic)", "Steel Shafts & Copper Motors", "Circuit Boards", "Toner/Ink Cartridges"]
-        }
-    };
-
     try {
-        let data;
-
-        // --- CHECK LOCAL DATA FIRST ---
-        if (localEwasteDatabase[itemName]) {
-            data = localEwasteDatabase[itemName]; // Use local data for Printers & Monitors
-        } else {
-            // Fetch from your Spring Boot server if it's an older item
-            const response = await fetch(`/api/waste?item=${itemName}&_=${new Date().getTime()}`);
-            data = await response.json();
-        }
+        // Fetch directly from your updated Spring Boot server
+        const response = await fetch(`/api/waste?item=${itemName}&_=${new Date().getTime()}`);
+        const data = await response.json();
 
         if(!data || data.name === "Unknown") return;
 
@@ -173,7 +157,7 @@ async function fetchDetails(itemName) {
     }
 }
 
-// 9. NEW: Securely Save to MySQL Database
+// 9. Securely Save to MySQL Database
 async function saveToDatabase(itemName) {
     let hazardCategory = "Safe"; 
 
@@ -204,35 +188,95 @@ async function saveToDatabase(itemName) {
     }
 }
 
-// 10. History Logic & Charts
+// 10. NEW: Gamified History Logic & Impact Charts
 async function loadHistory() {
     showTab('history');
-    const response = await fetch('/api/history');
-    const data = await response.json();
-    const tableBody = document.getElementById("history-table-body");
-    tableBody.innerHTML = "";
-    let safeCount = 0; let hazardousCount = 0;
+    
+    // 1. Fetch Fresh Data from MySQL
+    const response = await fetch('/api/history?_=' + Date.now());
+    allHistoryData = await response.json();
+    
+    // 2. Initialize Counters for Eco-Impact
+    let gold = 0; let co2 = 0; let plastic = 0;
 
-    data.forEach(record => {
-        // Assuming your backend returns 'item_name' and 'timestamp'
-        let row = `<tr><td>${record.timestamp}</td><td>${record.item_name}</td><td class="${record.category === 'Hazardous' ? 'text-danger' : 'text-success'}">${record.category}</td></tr>`;
-        tableBody.innerHTML += row;
-        if (record.category === 'Hazardous') hazardousCount++; else safeCount++;
-    });
-    drawChart(safeCount, hazardousCount);
-}
-
-let myChart = null;
-function drawChart(safe, hazardous) {
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if (myChart) myChart.destroy();
-    myChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Safe', 'Hazardous'],
-            datasets: [{ data: [safe, hazardous], backgroundColor: ['#28a745', '#dc3545'] }]
+    // 3. Calculate Impact based on scanned items
+    allHistoryData.forEach(r => {
+        let name = (r.item_name || r.itemName || "").toLowerCase(); 
+        if (name.includes("mobile") || name.includes("phone")) {
+            gold += 0.034;
+            co2 += 15;
+        } else if (name.includes("mouse")) {
+            plastic += 0.12;
+            co2 += 2;
+        } else if (name.includes("keyboard")) {
+            plastic += 0.6;
+            co2 += 5;
+        } else if (name.includes("monitor") || name.includes("screen") || name.includes("display")) {
+            plastic += 2.5; 
+            co2 += 35;
+            gold += 0.01; 
+        } else if (name.includes("printer") || name.includes("inkjet") || name.includes("laser")) {
+            plastic += 3.2; 
+            co2 += 25;
         }
     });
+
+    // 4. Update UI Impact Cards & Animate Gamified Progress Bars
+    if (document.getElementById("impact-gold")) {
+        document.getElementById("impact-gold").innerText = gold.toFixed(3) + " g";
+        document.getElementById("impact-co2").innerText = co2.toFixed(1) + " kg";
+        document.getElementById("impact-plastic").innerText = plastic.toFixed(1) + " kg";
+
+        // Calculate percentages based on the set goals
+        let goldPct = Math.min((gold / 1.0) * 100, 100);       // Goal: 1g
+        let co2Pct = Math.min((co2 / 100.0) * 100, 100);       // Goal: 100kg
+        let plasticPct = Math.min((plastic / 20.0) * 100, 100); // Goal: 20kg
+
+        // Move the bars
+        document.getElementById("bar-gold").style.width = goldPct + "%";
+        document.getElementById("bar-co2").style.width = co2Pct + "%";
+        document.getElementById("bar-plastic").style.width = plasticPct + "%";
+    }
+
+    // 5. Draw the pie chart and tables
+    drawOverallChart();
+    filterReports(); 
+}
+
+function drawOverallChart() {
+    let deviceCounts = {};
+    allHistoryData.forEach(r => { 
+        let itemName = r.item_name || r.itemName; // Handle varying backend names
+        deviceCounts[itemName] = (deviceCounts[itemName] || 0) + 1; 
+    });
+    
+    const labels = Object.keys(deviceCounts);
+    const values = Object.values(deviceCounts);
+    const total = allHistoryData.length || 1;
+    
+    const labelsWithPct = labels.map((label, index) => {
+        let pct = ((values[index] / total) * 100).toFixed(1);
+        return `${label} (${pct}%)`;
+    });
+    
+    const ctx = document.getElementById('myChart');
+    if (myChart) myChart.destroy();
+    
+    // Draw the chart ONLY if there is data
+    if (labels.length > 0) {
+        myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labelsWithPct,
+                datasets: [{ data: values, backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8'] }]
+            }
+        });
+    }
+}
+
+// Helper functions for the tables
+function filterReports() {
+    // Add logic here if you want to filter your tables by date
 }
 
 // Initialize on page load
