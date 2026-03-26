@@ -11,10 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* Merged and Cleaned CSS */
         body { 
             font-family: 'Poppins', sans-serif; 
-            background: linear-gradient(135deg, #f1f8f5 0%, #dcf0e7 100%); /* Soft modern mint */
+            background: linear-gradient(135deg, #f1f8f5 0%, #dcf0e7 100%); 
             color: #2c3e50;
             padding: 20px; 
             min-height: 100vh; 
@@ -104,12 +103,14 @@
         
         <div class="report-section bg-white border-success">
             <h3 class="text-center text-success mb-2 fw-bold">🌍 Your Eco-Impact</h3>
-<div class="text-center mb-4">
-    <span id="user-level-badge" class="badge rounded-pill bg-success fs-5 px-4 py-2 shadow-sm">
-        🌟 Level 1: Earth Novice
-    </span>
-    <p class="text-muted mt-2 mb-0 fw-bold" id="level-subtitle">Loading your rank...</p>
-</div>
+            
+            <div class="text-center mb-4">
+                <span id="user-level-badge" class="badge rounded-pill bg-success fs-5 px-4 py-2 shadow-sm">
+                    🌟 Level 1: Earth Novice
+                </span>
+                <p class="text-muted mt-2 mb-0 fw-bold" id="level-subtitle">Loading your rank...</p>
+            </div>
+            
             <div class="row text-center">
                 <div class="col-md-4 mb-3">
                     <div class="p-3 border rounded shadow-sm bg-light" style="border-radius: 16px;">
@@ -210,7 +211,6 @@
         document.getElementById("tab-history").classList.toggle('active', tab === 'history');
     }
 
-    // --- SCANNER LOGIC ---
     async function startWebcam() {
         document.getElementById("uploaded-image").style.display = "none";
         document.getElementById("result-box").classList.add("hidden");
@@ -224,7 +224,7 @@
         const container = document.getElementById("webcam-container");
         container.innerHTML = "";
         container.appendChild(webcam.canvas);
-        container.classList.add("scanning"); // Turns on the laser animation!
+        container.classList.add("scanning"); 
         
         window.requestAnimationFrame(loop);
     }
@@ -248,7 +248,7 @@
         
         const container = document.getElementById("webcam-container");
         container.innerHTML = "";
-        container.classList.remove("scanning"); // Turns off laser for photos
+        container.classList.remove("scanning"); 
         
         const img = document.getElementById("uploaded-image");
         img.src = window.URL.createObjectURL(file);
@@ -265,7 +265,6 @@
         const prediction = await model.predict(imageSource);
         let bestMatch = prediction.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
         
-        // Threshold updated to 85% to stop false scanning
         if (bestMatch.probability > 0.85) {
             document.getElementById("label").innerText = bestMatch.className;
             currentPrediction = bestMatch.className;
@@ -308,7 +307,6 @@
         let gold = 0; let co2 = 0; let plastic = 0;
 
         allHistoryData.forEach(r => {
-            // Using itemName or item_name depending on your backend
             let name = (r.itemName || r.item_name || "").toLowerCase(); 
             if (name.includes("mobile") || name.includes("phone")) {
                 gold += 0.034; co2 += 15;
@@ -323,12 +321,10 @@
             }
         });
 
-        // 1. Set the numbers
         document.getElementById("impact-gold").innerText = gold.toFixed(3) + " g";
         document.getElementById("impact-co2").innerText = co2.toFixed(1) + " kg";
         document.getElementById("impact-plastic").innerText = plastic.toFixed(1) + " kg";
 
-        // 2. Animate the progress bars!
         let goldPct = Math.min((gold / 1.0) * 100, 100);       
         let co2Pct = Math.min((co2 / 100.0) * 100, 100);       
         let plasticPct = Math.min((plastic / 20.0) * 100, 100); 
@@ -336,6 +332,27 @@
         document.getElementById("bar-gold").style.width = goldPct + "%";
         document.getElementById("bar-co2").style.width = co2Pct + "%";
         document.getElementById("bar-plastic").style.width = plasticPct + "%";
+
+        // --- NEW: LEVEL CALCULATION LOGIC ---
+        const totalScans = allHistoryData.length;
+        let level = 1;
+        let title = "Earth Novice 🌱";
+        let nextGoal = 5;
+
+        if (totalScans >= 50) { level = 5; title = "Global Savior 🌍"; nextGoal = "Max"; }
+        else if (totalScans >= 25) { level = 4; title = "Recycling Master 🏆"; nextGoal = 50; }
+        else if (totalScans >= 10) { level = 3; title = "Eco Warrior ⚔️"; nextGoal = 25; }
+        else if (totalScans >= 5) { level = 2; title = "Sustainability Hero 🦸"; nextGoal = 10; }
+
+        document.getElementById("user-level-badge").innerHTML = `🌟 Level ${level}: ${title}`;
+        
+        if (nextGoal !== "Max") {
+            let scansLeft = nextGoal - totalScans;
+            document.getElementById("level-subtitle").innerText = `Scan ${scansLeft} more item${scansLeft > 1 ? 's' : ''} to reach Level ${level + 1}!`;
+        } else {
+            document.getElementById("level-subtitle").innerText = `🎉 You have reached the maximum level!`;
+        }
+        // ------------------------------------
 
         const today = new Date().toISOString().split('T')[0];
         if(!document.getElementById("report-date").value) document.getElementById("report-date").value = today;
