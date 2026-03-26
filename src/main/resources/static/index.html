@@ -275,26 +275,98 @@
     }
 
     async function saveToHistory() {
-        if (!currentPrediction) {
-            alert("Hold steady until the AI recognizes the item!");
-            return;
+        if (!currentPrediction) return;
+        
+        // Change button state to show loading
+        const btn = document.getElementById("capture-btn");
+        btn.innerText = "⏳ Saving...";
+        btn.disabled = true;
+
+        try {
+            // 1. Silently send the scan to your Spring Boot database to log the history
+            await fetch(`/api/waste?item=${currentPrediction}&_=${Date.now()}`);
+            
+            // 2. Our Expanded, Presentation-Ready E-Waste Dictionary
+            const richData = {
+                "Mobile Phone": {
+                    isHazardous: true,
+                    dangerDetails: "Contains highly reactive Lithium-Ion batteries, lead, and rare earth metals.",
+                    components: ["Lithium-Ion Battery", "Gold/Silver Traces", "Cobalt", "Glass Screen"],
+                    steps: "1️⃣ Back up all data to the cloud or a hard drive.\n2️⃣ Perform a complete Factory Reset to wipe personal info.\n3️⃣ Remove the SIM card and SD memory cards.\n4️⃣ Do NOT attempt to remove the battery (fire hazard if punctured).\n5️⃣ Drop off at a retail drop-box (e.g., Best Buy, Apple) or certified e-waste bin."
+                },
+                "Laptop": {
+                    isHazardous: true,
+                    dangerDetails: "Contains heavy metals, lithium batteries, and toxic flame retardants.",
+                    components: ["Motherboard (Lead Solder)", "Lithium Battery", "Hard Drive", "LCD Screen"],
+                    steps: "1️⃣ Back up important files and completely wipe the hard drive.\n2️⃣ Remove any connected USB dongles or wireless mice.\n3️⃣ Keep the battery inside (handle with extreme care if swollen).\n4️⃣ Pack the laptop along with its specific charging brick and cables.\n5️⃣ Take directly to a municipal hazardous waste or certified e-waste facility."
+                },
+                "Monitor": {
+                    isHazardous: true,
+                    dangerDetails: "Older CRT monitors contain lead; modern LCD/LEDs contain mercury vapors.",
+                    components: ["Glass/Liquid Crystals", "Mercury Backlighting", "Hard Plastic Shell", "Circuit Boards"],
+                    steps: "1️⃣ Unplug the monitor and neatly wrap the power cord.\n2️⃣ Do NOT dismantle or break the glass screen (releases toxic vapor).\n3️⃣ Handle with extreme care during transport to prevent cracking.\n4️⃣ Deliver directly to a certified e-waste drop-off center."
+                },
+                "Printer": {
+                    isHazardous: true,
+                    dangerDetails: "Contains chemical ink, Toner VOCs, and fire-retardant plastics.",
+                    components: ["Toner/Ink Cartridges", "Copper Motors", "Steel Shafts", "Plastic Housing"],
+                    steps: "1️⃣ Remove all ink or toner cartridges and place them in a sealed plastic bag.\n2️⃣ Recycle cartridges separately at an office supply store (e.g., Staples).\n3️⃣ Tape the printer doors shut so it doesn't break open during transit.\n4️⃣ Take the main printer body to a municipal e-waste facility."
+                },
+                "Keyboard": {
+                    isHazardous: false,
+                    dangerDetails: "Generally safe to handle, but creates toxic microplastics if put in a landfill.",
+                    components: ["ABS Plastic Keys", "Silicone Membrane", "Small Circuit Board", "Copper Wire"],
+                    steps: "1️⃣ Unplug the keyboard and wrap the cable neatly.\n2️⃣ If it is wireless, remove the AA/AAA alkaline batteries and recycle them separately.\n3️⃣ Shake out any crumbs or debris.\n4️⃣ Drop off at a standard electronics recycling bin."
+                },
+                "Computer Mouse": {
+                    isHazardous: false,
+                    dangerDetails: "Safe to handle, but contains non-biodegradable plastics and circuitry.",
+                    components: ["Hard Plastic", "Optical Sensor / Laser", "Scroll Wheel", "Circuit Board"],
+                    steps: "1️⃣ If wireless, remove the battery and the USB receiver dongle.\n2️⃣ Wrap the cord around the mouse to prevent tangling.\n3️⃣ Drop off alongside other safe peripherals at a local e-waste collection point."
+                }
+            };
+
+            // 3. Fallback logic just in case the AI finds a new item
+            let displayData = richData[currentPrediction];
+            if (!displayData) {
+                // Generic fallback for unknown items
+                displayData = {
+                    isHazardous: false,
+                    dangerDetails: "General electronic components and plastics.",
+                    components: ["Plastic Housing", "Copper Wiring", "Circuit Boards"],
+                    steps: "1️⃣ Unplug the device entirely.\n2️⃣ Remove any external or loose batteries.\n3️⃣ Do not throw in the regular trash.\n4️⃣ Drop off at a local e-waste recycling center."
+                };
+            }
+
+            // 4. Update the UI with the expanded data
+            document.getElementById("result-box").classList.remove("hidden");
+            document.getElementById("item-name").innerText = currentPrediction;
+            document.getElementById("instructions").innerText = displayData.steps;
+            
+            const alertBox = document.getElementById("alert-box");
+            alertBox.className = displayData.isHazardous ? "alert alert-danger fw-bold" : "alert alert-success fw-bold";
+            alertBox.innerText = displayData.isHazardous ? "⚠️ HAZARDOUS: " + displayData.dangerDetails : "✅ SAFE: " + displayData.dangerDetails;
+            
+            const list = document.getElementById("comp-list");
+            list.innerHTML = "";
+            displayData.components.forEach(c => {
+                let li = document.createElement("li"); 
+                li.className = "list-group-item bg-light";
+                li.innerText = c; 
+                list.appendChild(li);
+            });
+
+            // Smoothly scroll down so the user sees the new instructions
+            document.getElementById("result-box").scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error("Failed to save/fetch data", error);
+            alert("Warning: Could not connect to the database. Displaying local instructions.");
+        } finally {
+            // Reset button
+            btn.innerText = "✅ Confirm & Get Instructions";
+            btn.disabled = false;
         }
-        const response = await fetch(`/api/waste?item=${currentPrediction}&_=${Date.now()}`);
-        const data = await response.json();
-        
-        document.getElementById("result-box").classList.remove("hidden");
-        document.getElementById("item-name").innerText = data.name;
-        document.getElementById("instructions").innerText = data.recyclingSteps;
-        
-        const alertBox = document.getElementById("alert-box");
-        alertBox.className = data.isHazardous ? "alert alert-danger fw-bold" : "alert alert-success fw-bold";
-        alertBox.innerText = data.isHazardous ? "⚠️ HAZARDOUS: " + data.dangerDetails : "✅ SAFE: " + data.dangerDetails;
-        
-        const list = document.getElementById("comp-list");
-        list.innerHTML = "";
-        data.components.forEach(c => {
-            let li = document.createElement("li"); li.innerText = c; list.appendChild(li);
-        });
     }
 
     // --- GAMIFIED HISTORY LOGIC ---
