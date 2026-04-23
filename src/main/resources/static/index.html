@@ -442,14 +442,11 @@
         document.getElementById("bar-gold").style.width = goldPct + "%";
         document.getElementById("bar-co2").style.width = co2Pct + "%";
         document.getElementById("bar-plastic").style.width = plasticPct + "%";
-
-
         // --- NEW: LEVEL CALCULATION LOGIC ---
         const totalScans = allHistoryData.length;
         let level = 1;
         let title = "Earth Novice 🌱";
         let nextGoal = 15; // Target to reach Level 2
-
         if (totalScans >= 70) { 
             level = 5; 
             title = "Global Savior 🌍"; 
@@ -470,22 +467,18 @@
             title = "Sustainability Hero 🦸"; 
             nextGoal = 30; // Target to reach Level 3
         }
-
         document.getElementById("user-level-badge").innerHTML = `🌟 Level ${level}: ${title}`;
-        
         if (nextGoal !== "Max") {
             let scansLeft = nextGoal - totalScans;
             document.getElementById("level-subtitle").innerText = `Scan ${scansLeft} more item${scansLeft !== 1 ? 's' : ''} to reach Level ${level + 1}!`;
         } else {
             document.getElementById("level-subtitle").innerText = `🎉 You have reached the maximum level!`;
         }
-
         const today = new Date().toISOString().split('T')[0];
         if(!document.getElementById("report-date").value) document.getElementById("report-date").value = today;
         drawOverallChart();
         filterReports(); 
     }
-
     function drawOverallChart() {
         let deviceCounts = {};
         allHistoryData.forEach(r => { 

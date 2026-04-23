@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart E-Waste Sorter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9; /* Light eco-green background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-container h2 {
+            color: #2e7d32; /* Forest green */
+            margin-bottom: 10px;
+        }
+        .login-container p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .login-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .login-btn:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 15px;
+            color: #d32f2f; /* Error red */
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Smart E-Waste Sorter</h2>
+    <p>Sign in to access your Eco-Impact Dashboard</p>
+    
+    <form id="loginForm">
+        <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" required placeholder="eco@warrior.com">
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="login-btn">Log In</button>
+        <div id="statusMessage" class="message"></div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent page reload
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const statusMessage = document.getElementById('statusMessage');
+        
+        try {
+            // Send data to your Spring Boot Microservice
+            const response = await fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email, password: password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                statusMessage.style.color = "green";
+                statusMessage.textContent = "Login successful! Redirecting to scanner...";
+                
+                // Store the token (if using JWT) and redirect to the camera/dashboard page
+                localStorage.setItem('userToken', data.token);
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html'; 
+                }, 1500);
+            } else {
+                statusMessage.style.color = "#d32f2f";
+                statusMessage.textContent = "Invalid email or password.";
+            }
+        } catch (error) {
+            statusMessage.textContent = "Error connecting to the server.";
+            console.error("Login Error:", error);
+        }
+    });
+</script>
+
+</body>
+</html>
